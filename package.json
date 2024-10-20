@@ -20,11 +20,13 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
+    "@wekanteam/markdown-it-mermaid": "^0.6.4",
+    "ace-builds": "^1.36.2",
     "electron-updater": "^6.1.7",
     "element-plus": "^2.8.6",
+    "lodash": "^4.17.21",
     "markdown-it": "^14.1.0",
     "markdown-it-mathjax3": "^4.3.2",
-    "markdown-it-mermaid": "^0.2.5",
     "pinia": "^2.2.4",
     "vue3-ace-editor": "^2.2.4"
   },
