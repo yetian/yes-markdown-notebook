@@ -1,6 +1,9 @@
 <template>
   <div>
-    <div class="header"> &nbsp; Ye's Markdown Notebook</div>
+    <div class="header">
+      <div class="header-action" @click.stop="openFile()">📂 Open</div>
+      <div class="header-action">💾 Save</div>
+    </div>
     <div class="content">
       <div class="content-project">project</div>
       <div class="content-editor">
@@ -41,8 +44,11 @@ export default {
   },
   data() {
     return {
-      content: '',
-      renderedContent: ''
+      content: '', // current content
+      renderedContent: '',
+      currentFilePath: '',
+      // mdFile: {filePath: '', content: ''}
+      mdFiles: []
     }
   },
   watch: {
@@ -66,6 +72,20 @@ export default {
       setTimeout(() => {
         mermaid.run({ nodes: document.querySelectorAll('.mermaid') })
       }, 100)
+    },
+    openFile: async function () {
+      const result = await window.api.openMDFile()
+
+      if (result) {
+        this.currentFilePath = result.filePath
+        this.content = result.content
+        this.addToFileList(result.filePath, result.content)
+      }
+    },
+    addToFileList: function (filePath, content) {
+      if (!filePath || !content) return
+      if (this.mdFiles.find((file) => file.filePath === filePath)) return
+      this.mdFiles.push({ filePath, content })
     }
   }
 }
@@ -73,12 +93,28 @@ export default {
 
 <style scoped>
 .header {
+  display: flex;
   width: 100%;
   background-color: #fafafa;
   height: 47px;
   border-bottom: 1px solid #ddd;
   line-height: 47px;
-  font-weight: 700;
+  font-weight: 400;
+}
+
+.header-action {
+  width: 100px;
+  text-align: center;
+  border-right: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.header-action:hover {
+  background-color: #eee;
+}
+
+.header-action:active {
+  background-color: #ddd;
 }
 
 .content {

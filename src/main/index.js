@@ -1,7 +1,9 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+
+import fs from 'fs'
 
 function createWindow() {
   // Create the browser window.
@@ -35,6 +37,8 @@ function createWindow() {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  return mainWindow
 }
 
 // This method will be called when Electron has finished
@@ -54,7 +58,67 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
-  createWindow()
+  // here defines the file operations
+  // the following operations will be defined:
+  // - open and load a md file
+  // - save a new md file
+  // - save an exsiting md file
+  // - (tbd) save as a new md file
+  // - (tbd) open a new folder
+
+  ipcMain.handle('save-new-md-file', async (event, content) => {
+    const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+      title: 'Save Markdown File',
+      defaultPath: 'untitled.md',
+      filters: [{ name: 'Markdown', extensions: ['md'] }]
+    })
+
+    if (!canceled && filePath) {
+      fs.writeFile(filePath, content, 'utf-8', (err) => {
+        if (err) {
+          console.error('Failed to save file:', err);
+        } else {
+          console.log('File saved successfully:', filePath)
+        }
+      })
+    }
+    // return the file path
+    return filePath
+  })
+
+  ipcMain.handle('open-md-file', async () => {
+    console.log('open-md-file clicked')
+    try {
+      const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+        title: 'Open Markdown File',
+        properties: ['openFile'],
+        filters: [{ name: 'Markdown', extensions: ['md'] }]
+      })
+
+      if (!canceled && filePaths) {
+        const content = fs.readFileSync(filePaths[0], 'utf-8')
+        return {
+          filePath: filePaths[0],
+          content: content
+        }
+      }
+    } catch (err) {
+      console.error('Failed to open file:', err)
+    }
+    return undefined
+  })
+
+  ipcMain.handle('save-existing-md-file', (event, { filePath, content }) => {
+    try {
+      fs.writeFileSync(filePath, content, 'utf-8')
+      return true
+    } catch (err) {
+      console.error('Failed to save file:', err)
+    }
+    return false
+  })
+
+  const mainWindow = createWindow()
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

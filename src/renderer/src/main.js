@@ -6,8 +6,15 @@ import App from './App.vue'
 
 import './assets/main.css'
 
+import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+
+const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
+
 const app = createApp(App)
 
 app.use(ElementPlus)
+app.use(pinia)
 
 app.mount('#app')
