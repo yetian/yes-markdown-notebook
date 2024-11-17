@@ -2,7 +2,7 @@
   <div>
     <div class="header">
       <div class="header-action" @click.stop="openFile()">📂 Open</div>
-      <div class="header-action">💾 Save</div>
+      <div class="header-action" @click.stop="saveFile()">💾 Save</div>
     </div>
     <div class="content">
       <div class="content-project">project</div>
@@ -17,7 +17,10 @@
       </div>
       <div class="content-previewer" v-html="renderedContent"></div>
     </div>
-    <div class="footer">footer</div>
+    <div class="footer">
+      <div v-if="currentFilePath">File: {{ currentFilePath }}</div>
+      <div v-else>Unsaved File.</div>
+    </div>
   </div>
 </template>
 
@@ -46,7 +49,7 @@ export default {
     return {
       content: '', // current content
       renderedContent: '',
-      currentFilePath: '',
+      currentFilePath: undefined,
       // mdFile: {filePath: '', content: ''}
       mdFiles: []
     }
@@ -75,11 +78,23 @@ export default {
     },
     openFile: async function () {
       const result = await window.api.openMDFile()
-
+      console.log(result)
       if (result) {
         this.currentFilePath = result.filePath
         this.content = result.content
         this.addToFileList(result.filePath, result.content)
+      }
+    },
+    saveFile: async function () {
+      if (this.currentFilePath) {
+        const result = await window.api.saveExistingMDFile({
+          filePath: this.currentFilePath,
+          content: this.content
+        })
+        console.log(result)
+      } else {
+        const result = await window.api.saveNewMDFile(this.content)
+        console.log(result)
       }
     },
     addToFileList: function (filePath, content) {
@@ -133,9 +148,10 @@ export default {
 }
 
 .footer {
-  height: 31px;
+  height: 21px;
   border-top: 1px solid #ddd;
   background-color: #fafafa;
+  padding: 5px;
 }
 
 .content-previewer {

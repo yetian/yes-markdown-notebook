@@ -67,34 +67,36 @@ app.whenReady().then(() => {
   // - (tbd) open a new folder
 
   ipcMain.handle('save-new-md-file', async (event, content) => {
-    const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
-      title: 'Save Markdown File',
-      defaultPath: 'untitled.md',
-      filters: [{ name: 'Markdown', extensions: ['md'] }]
-    })
-
-    if (!canceled && filePath) {
-      fs.writeFile(filePath, content, 'utf-8', (err) => {
-        if (err) {
-          console.error('Failed to save file:', err);
-        } else {
-          console.log('File saved successfully:', filePath)
-        }
+    try {
+      const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+        title: 'Save Markdown File',
+        defaultPath: 'untitled.md',
+        filters: [{ name: 'Markdown', extensions: ['md'] }]
       })
+      if (!canceled && filePath) {
+        fs.writeFile(filePath, content, 'utf-8', (err) => {
+          if (err) {
+            console.error('Failed to save file:', err)
+          } else {
+            console.log('File saved successfully:', filePath)
+            return filePath
+          }
+        })
+      }
+    } catch (err) {
+      console.error('Failed to save file:', err)
     }
     // return the file path
-    return filePath
+    return undefined
   })
 
   ipcMain.handle('open-md-file', async () => {
-    console.log('open-md-file clicked')
     try {
       const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
         title: 'Open Markdown File',
         properties: ['openFile'],
         filters: [{ name: 'Markdown', extensions: ['md'] }]
       })
-
       if (!canceled && filePaths) {
         const content = fs.readFileSync(filePaths[0], 'utf-8')
         return {
@@ -105,12 +107,14 @@ app.whenReady().then(() => {
     } catch (err) {
       console.error('Failed to open file:', err)
     }
+    console.log('No file selected.')
     return undefined
   })
 
-  ipcMain.handle('save-existing-md-file', (event, { filePath, content }) => {
+  ipcMain.handle('save-existing-md-file', (event, contentObj) => {
     try {
-      fs.writeFileSync(filePath, content, 'utf-8')
+      fs.writeFileSync(contentObj.filePath, contentObj.content, 'utf-8')
+      console.log('File saved successfully:', contentObj.filePath)
       return true
     } catch (err) {
       console.error('Failed to save file:', err)

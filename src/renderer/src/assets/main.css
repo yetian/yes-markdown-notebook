@@ -92,18 +92,6 @@ body {
   color: #0057d2;
 }
 
-.content-previewer a::after {
-  content: "Link";
-  font-family: monospace;
-  font-weight: 700;
-  font-size:10px;
-  margin-left: 4px;
-  text-decoration: none;
-  color: white;
-  background-color: #0057d2;
-  padding: 0 2px;
-}
-
 .content-previewer a:hover {
   text-decoration: dashed underline;
 }
